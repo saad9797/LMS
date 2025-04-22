@@ -1,11 +1,68 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import *
 from .serializers import *
+
+
+class StudentSignupView(APIView):
+    def post(self, request, format=None):
+        serializer = StudentSignupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'Student registered successfully',
+                'student_id': serializer.data.get('student_id'),
+                'email': serializer.data.get('email')
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class InstructorSignupView(APIView):
+    def post(self, request, format=None):
+        serializer = InstructorSignupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'Instructor registered successfully',
+                'instructor_id': serializer.instance.instructor_id,
+                'email': serializer.instance.email,
+                'department': serializer.instance.department.name  # Include department name in response
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class StudentLoginView(APIView):
+#     def post(self, request, format=None):
+#         serializer = StudentLoginSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+        
+#         student = serializer.validated_data['student']
+        
+#         # Generate JWT tokens
+#         refresh = RefreshToken.for_user(student)
+        
+#         return Response({
+#             'message': 'Login successful',
+#             'student_id': student.student_id,
+#             'email': student.email,
+#             'name': student.name,
+#             'class_year': student.class_year,
+#             'tokens': {
+#                 'refresh': str(refresh),
+#                 'access': str(refresh.access_token),
+#             }
+#         }, status=status.HTTP_200_OK)
+    
+
+
+
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    # permission_classes = [permissions.IsAuthenticated]
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
