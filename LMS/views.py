@@ -199,17 +199,14 @@ class DepartmentViewSet(viewsets.ModelViewSet):
 class InstructorViewSet(viewsets.ModelViewSet):
     queryset = Instructor.objects.all()
     serializer_class = InstructorSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 class CourseOfferingViewSet(viewsets.ModelViewSet):
     queryset = CourseOffering.objects.all()
     serializer_class = CourseOfferingSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -226,7 +223,6 @@ class CourseOfferingViewSet(viewsets.ModelViewSet):
 class EnrollmentViewSet(viewsets.ModelViewSet):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
-    # permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         queryset = super().get_queryset()
