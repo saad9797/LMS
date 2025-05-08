@@ -16,8 +16,10 @@ urlpatterns = [
     path('', include(router.urls)),
     path('student-signup/', StudentSignupView.as_view(),name='Student-SignUp'),
     path('instructor-signup/', InstructorSignupView.as_view(),name='Instructor-SignUp'),
-    # path('login/', StudentLoginView.as_view(),
-    # name='student-login')
+    path('login/', LoginView.as_view(),
+    name='student-login'),
+    path('token-authenticate/', validate_token ,
+    name='token-authenticate'),
 
 ]
 

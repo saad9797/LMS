@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class StudentSignupSerializer(serializers.ModelSerializer):
@@ -60,30 +61,6 @@ class InstructorSignupSerializer(serializers.ModelSerializer):
         
         instructor.save()
         return instructor
-
-
-
-# Auth part :
-
-# class StudentLoginSerializer(serializers.Serializer):
-#     email = serializers.EmailField(required=True)
-#     password = serializers.CharField(required=True, write_only=True)
-    
-#     def validate(self, data):
-#         email = data.get('email')
-#         password = data.get('password')
-        
-#         try:
-#             student = Student.objects.get(email=email)
-#         except Student.DoesNotExist:
-#             raise serializers.ValidationError("Invalid email or password")
-        
-#         if not student.check_password(password):
-#             raise serializers.ValidationError("Invalid email or password")
-        
-#         data['student'] = student
-#         return data
-
 
 
 
