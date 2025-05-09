@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-3a$_gxw5&i*6ge36f^g$3-$a@9wgsinjhw&z61l2!f4xka1$uk'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -32,12 +32,12 @@ import os
 
 
 # Media files (for user uploads like PDFs)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'submissions')  # Points to your submissions folder
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'submissions')  # Points to your submissions folder
 
 # Static files (minimal config since you're not using static files yet)
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Still needed for admin
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Still needed for admin
 # Application definition
 
 
