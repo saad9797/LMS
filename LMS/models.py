@@ -89,15 +89,15 @@ class CourseOffering(models.Model):
 
 class Enrollment(models.Model):
     STATUS_CHOICES = [
-        ('A', 'Active'),
-        ('N', 'Not Active')
+        ('A', 'ACTIVE'),
+        ('P', 'PENDING')
     ]
     
     enrollment_id = models.AutoField(primary_key=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     enrollment_date = models.DateField(auto_now_add=True)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='N')
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')
     
     class Meta:
         unique_together = ('course', 'student')

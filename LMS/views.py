@@ -8,6 +8,11 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.hashers import check_password
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import action
+from django.db.models import Case, When, Value, CharField, Exists, OuterRef
+from django.db.models.functions import Coalesce
+
+
 
 
 
@@ -204,6 +209,55 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
+    @action(detail=False, methods=['get'])
+    def coursewithstatus(self, request):
+        """
+        Get all courses with enrollment status for a specific student.
+        Returns:
+        - Enrollments that exist (with actual enrollment data)
+        - Courses not enrolled in marked with NOT_ENROLLED status
+        """
+        student_id = request.query_params.get('student_id')
+        if not student_id:
+            return Response(
+                {"error": "student_id parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get all enrollments for this student
+        student_enrollments = Enrollment.objects.filter(
+            student_id=student_id
+        ).select_related('course')
+
+        # Get all courses in the system
+        all_courses = Course.objects.all()
+
+        response_data = []
+
+        # First add actual enrollments
+        for enrollment in student_enrollments:
+            response_data.append({
+                "enrollment_id": enrollment.enrollment_id,
+                "enrollment_date": enrollment.enrollment_date,
+                "status": enrollment.status,
+                "course": enrollment.course.course_id,
+                "student": enrollment.student_id
+            })
+
+        # Then add courses not enrolled in
+        enrolled_course_ids = {e.course_id for e in student_enrollments}
+        for course in all_courses:
+            if course.course_id not in enrolled_course_ids:
+                response_data.append({
+                    "enrollment_id": None,
+                    "enrollment_date": None,
+                    "status": "NOT_ENROLLED",
+                    "course": course.course_id,
+                    "student": int(student_id)
+                })
+
+        return Response(response_data)
+
 class CourseOfferingViewSet(viewsets.ModelViewSet):
     queryset = CourseOffering.objects.all()
     serializer_class = CourseOfferingSerializer
@@ -220,6 +274,7 @@ class CourseOfferingViewSet(viewsets.ModelViewSet):
             
         return queryset
 
+
 class EnrollmentViewSet(viewsets.ModelViewSet):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
@@ -228,13 +283,74 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         student_id = self.request.query_params.get('student_id')
         course_id = self.request.query_params.get('course_id')
+        instructor_id = self.request.query_params.get('instructor_id')
         
         if student_id:
             queryset = queryset.filter(student_id=student_id)
         if course_id:
             queryset = queryset.filter(course_id=course_id)
+        if instructor_id:
+            # Get courses taught by this instructor
+            instructor_courses = CourseOffering.objects.filter(
+                instructor_id=instructor_id
+            ).values_list('course_id', flat=True)
+            
+            # Filter enrollments for these courses with PENDING status
+            queryset = queryset.filter(
+                course_id__in=instructor_courses,
+                status='P'  # P for PENDING
+            ).select_related('student', 'course')
             
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        # Check if we're filtering by instructor_id
+        if 'instructor_id' in request.query_params:
+            queryset = self.filter_queryset(self.get_queryset())
+            
+            # Create simplified response
+            data = []
+            for enrollment in queryset:
+                data.append({
+                    'enrollment_id': enrollment.enrollment_id,
+                    'status': enrollment.status,
+                    'course_code': enrollment.course.course_code,
+                    'course_name': enrollment.course.course_name,
+                    'student_name': enrollment.student.name,
+                    'enrollment_date': enrollment.enrollment_date
+                })
+            return Response(data)
+        
+        # Default behavior for other cases
+        return super().list(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get'])
+    def active_courses(self, request):
+        student_id = request.query_params.get('student_id')
+        if not student_id:
+            return Response(
+                {"error": "student_id parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        active_enrollments = self.get_queryset().filter(
+            student_id=student_id,
+            status='A'  # A for ACTIVE
+        ).select_related('course')
+
+        data = []
+        for enrollment in active_enrollments:
+            data.append({
+                'enrollment_id': enrollment.enrollment_id,
+                'status': enrollment.status,
+                'course_id': enrollment.course.course_id,
+                'course_code': enrollment.course.course_code,
+                'course_title': enrollment.course.course_name,
+                'enrollment_date': enrollment.enrollment_date,
+            })
+        
+        return Response(data)
+
 
 class AssignmentViewSet(viewsets.ModelViewSet):
     queryset = Assignment.objects.all()
