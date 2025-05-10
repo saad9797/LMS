@@ -103,7 +103,7 @@ class LoginView(APIView):
             status=status.HTTP_200_OK,
         )
     
-
+# called everytime a route is accessed
 @api_view(["POST"])
 @authentication_classes([])
 def validate_token(request):
