@@ -68,6 +68,25 @@ class Course(models.Model):
     def __str__(self):
         return f"{self.course_code}: {self.course_name}"
 
+# class CourseOffering(models.Model):
+#     SEMESTER_CHOICES = [
+#         ('FA', 'Fall'),
+#         ('SP', 'Spring'),
+#     ]
+    
+#     course_detail_id = models.AutoField(primary_key=True)
+#     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+#     year = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)])
+#     semester = models.CharField(max_length=2, choices=SEMESTER_CHOICES)
+#     instructor = models.ForeignKey(Instructor, on_delete=models.SET_NULL, null=True)
+#     schedule_info = models.CharField(max_length=100)  # e.g., "Mon/Wed 10-11:30"
+#     department = models.ForeignKey(Department, on_delete=models.CASCADE)    
+#     class Meta:
+#         unique_together = ('course', 'year', 'semester', 'instructor')
+    
+#     def __str__(self):
+#         return f"{self.course.course_code} - {self.get_semester_display()} {self.year}"
+
 class CourseOffering(models.Model):
     SEMESTER_CHOICES = [
         ('FA', 'Fall'),
@@ -75,17 +94,17 @@ class CourseOffering(models.Model):
     ]
     
     course_detail_id = models.AutoField(primary_key=True)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.OneToOneField(Course, on_delete=models.CASCADE)  # Changed to OneToOneField
     year = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)])
     semester = models.CharField(max_length=2, choices=SEMESTER_CHOICES)
     instructor = models.ForeignKey(Instructor, on_delete=models.SET_NULL, null=True)
     schedule_info = models.CharField(max_length=100)  # e.g., "Mon/Wed 10-11:30"
     department = models.ForeignKey(Department, on_delete=models.CASCADE)    
-    class Meta:
-        unique_together = ('course', 'year', 'semester', 'instructor')
-    
+
+
     def __str__(self):
         return f"{self.course.course_code} - {self.get_semester_display()} {self.year}"
+
 
 class Enrollment(models.Model):
     STATUS_CHOICES = [

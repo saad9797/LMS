@@ -260,21 +260,37 @@ class CourseViewSet(viewsets.ModelViewSet):
 
         return Response(response_data)
 
+
 class CourseOfferingViewSet(viewsets.ModelViewSet):
-    queryset = CourseOffering.objects.all()
+    queryset = CourseOffering.objects.select_related(
+        'instructor',
+        'course',
+        'department'
+    ).all()
     serializer_class = CourseOfferingSerializer
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        year = self.request.query_params.get('year')
-        semester = self.request.query_params.get('semester')
-        
-        if year:
-            queryset = queryset.filter(year=year)
-        if semester:
-            queryset = queryset.filter(semester=semester)
-            
-        return queryset
+    def _enhance_offering(self, offering):
+        return {
+            **self.get_serializer(offering).data,
+            'instructor_name': f"{offering.instructor.name}",
+            'course_name': offering.course.course_name,
+            'department_name': offering.department.name
+        }
+
+    @action(detail=False, methods=['get'], url_path=r'instructor/(?P<instructor_id>\d+)')
+    def by_instructor(self, request, instructor_id=None):
+        offerings = self.queryset.filter(instructor_id=instructor_id)
+        return Response([self._enhance_offering(o) for o in offerings])
+
+    @action(detail=False, methods=['get'], url_path=r'department/(?P<department_id>\d+)')
+    def by_department(self, request, department_id=None):
+        offerings = self.queryset.filter(department_id=department_id)
+        return Response([self._enhance_offering(o) for o in offerings])
+
+    @action(detail=False, methods=['get'], url_path=r'course/(?P<course_id>\d+)')
+    def by_course(self, request, course_id=None):
+        offering = self.queryset.get(course_id=course_id)
+        return Response(self._enhance_offering(offering))
 
 
 class EnrollmentViewSet(viewsets.ModelViewSet):
