@@ -30,6 +30,7 @@ class StudentSignupView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@authentication_classes([])
 class InstructorSignupView(APIView):
     def post(self, request, format=None):
         serializer = InstructorSignupSerializer(data=request.data)
@@ -44,6 +45,7 @@ class InstructorSignupView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@authentication_classes([])
 class LoginView(APIView):
     def post(self, request):
         email = request.data.get("email")  # consistent lowercase
