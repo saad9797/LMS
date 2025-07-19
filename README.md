@@ -48,5 +48,3 @@ A simple full-stack LMS (Learning Management System) with a Django backend and R
     ```
 
 ---
-
-## 🔗 Project Structure
