@@ -136,36 +136,12 @@ class Assignment(models.Model):
     def __str__(self):
         return f"{self.title} ({self.course.course_code})"
 
-class AssignmentSubmission(models.Model):
-    submission_id = models.AutoField(primary_key=True)
-    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    submission_date = models.DateTimeField(auto_now_add=True)
-    file = models.FileField(upload_to='submissions/', null=True, blank=True)
-    grade = models.DecimalField(
-        max_digits=5, 
-        decimal_places=2, 
-        null=True, 
-        blank=True,
-        validators=[MinValueValidator(0)]
-    )
-    feedback = models.TextField(blank=True,null=True)
-    
-    class Meta:
-        unique_together = ('assignment', 'student')
-    
-    def __str__(self):
-        return f"{self.student.name}'s submission for {self.assignment.title}"
-
-
 # class AssignmentSubmission(models.Model):
 #     submission_id = models.AutoField(primary_key=True)
 #     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
 #     student = models.ForeignKey(Student, on_delete=models.CASCADE)
 #     submission_date = models.DateTimeField(auto_now_add=True)
-#     file = models.BinaryField(null=True, blank=True)  # PDF stored as binary data
-#     file_name = models.CharField(max_length=255, null=True, blank=True)  # Store original filename
-#     file_type = models.CharField(max_length=50, null=True, blank=True)  # e.g., 'application/pdf'
+#     file = models.FileField(upload_to='submissions/', null=True, blank=True)
 #     grade = models.DecimalField(
 #         max_digits=5, 
 #         decimal_places=2, 
@@ -173,10 +149,34 @@ class AssignmentSubmission(models.Model):
 #         blank=True,
 #         validators=[MinValueValidator(0)]
 #     )
-#     feedback = models.TextField(blank=True, null=True)
+#     feedback = models.TextField(blank=True,null=True)
     
 #     class Meta:
 #         unique_together = ('assignment', 'student')
     
 #     def __str__(self):
 #         return f"{self.student.name}'s submission for {self.assignment.title}"
+
+
+class AssignmentSubmission(models.Model):
+    submission_id = models.AutoField(primary_key=True)
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    submission_date = models.DateTimeField(auto_now_add=True)
+    file = models.BinaryField(null=True, blank=True)  # PDF stored as binary data
+    file_name = models.CharField(max_length=255, null=True, blank=True)  # Store original filename
+    file_type = models.CharField(max_length=50, null=True, blank=True)  # e.g., 'application/pdf'
+    grade = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        validators=[MinValueValidator(0)]
+    )
+    feedback = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        unique_together = ('assignment', 'student')
+    
+    def __str__(self):
+        return f"{self.student.name}'s submission for {self.assignment.title}"

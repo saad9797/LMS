@@ -21,8 +21,8 @@ urlpatterns = [
     path('token-authenticate/', validate_token ,
     name='token-authenticate'),
     
-    # path('submit-assignment/', AssignmentSubmissionView.as_view(), name='submit-assignment'),
-    # path('download/<int:submission_id>/', download_submission, name='download-submission'),
+    path('submit-assignment/', AssignmentSubmissionView.as_view(), name='submit-assignment'),
+    path('download/<int:submission_id>/', download_submission, name='download-submission'),
 
 ]
 
