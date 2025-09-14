@@ -1,0 +1,815 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "7f879acb-e83c-4a7d-9ff4-ed2b15a7d861",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        -384,
+        0
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {},
+      "id": "08391051-2b40-4373-be46-468132a1da30",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        560,
+        48
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "id": "c4af8d08-f694-4553-8241-387f7df591fa",
+      "name": "Extract data from file",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -1072,
+        -64
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Saad. How can I assist you today?",
+        "options": {}
+      },
+      "id": "6c15941d-5bbc-4310-99b9-eac5919077af",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        -1552,
+        -64
+      ],
+      "webhookId": "c308dec7-655c-4b79-832e-991bd8ea891f",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "=Here is the database schema: {{ $json.schema }}\nHere is the user request: {{ $('Chat Trigger').item.json.chatInput }}",
+        "options": {
+          "humanMessage": "TOOLS\n------\nAssistant can ask the user to use tools to look up information that may be helpful in answering the users original question. The tools the human can use are:\n\n{tools}\n\n{format_instructions}\n\nUSER'S INPUT\n--------------------\nHere is the user's input (remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else):\n\n{{input}}",
+          "systemMessage": "You are a precise SQL generator that only returns SQL code.\n\nOnly generate valid SQL queries based on the schema provided.\n\nDo not explain anything. Do not use markdown or backticks. Only return the raw SQL query.\n\nHere is the table schema:\n\nTable: \"LMS_department\"  \nColumns:  \n- department_id (primary key)  \n- name (text)\n\nUse exactly the table and column names as given above. Table and column names are case-sensitive.\n\nAlways wrap table names in double quotes as shown.\n"
+        }
+      },
+      "id": "dad070c3-93e4-4edd-9486-d50deb1e3d18",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -512,
+        -176
+      ],
+      "typeVersion": 1.6
+    },
+    {
+      "parameters": {
+        "content": "## Run this part only once\nThis section:\n* loads a list of all tables from the database hosted on [db4free](https://db4free.net/signup.php) \n* extracts the database schema for each table and adds the table name\n* converts the schema into a binary JSON format\n* saves the schema `./chinook_mysql.json` file locally\n\n***Now you can use chat to \"talk\" to your data!*** 🎉",
+        "height": 466,
+        "width": 1081,
+        "color": 3
+      },
+      "id": "ac9f0654-eba6-404a-84b5-31edcb7ec6bf",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1664,
+        -816
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Pre-workflow setup \nConnect to a free MySQL server and import your database. Follow Step 1 and 2 in this [tutorial](https://blog.n8n.io/compare-databases/) for more.\n\n*The Chinook data used in this workflow is available on [GitHub](https://github.com/msimanga/chinook/tree/master/mysql).* ",
+        "height": 174.60585869504342,
+        "width": 312.47220527158765,
+        "color": 6
+      },
+      "id": "491003c8-6f64-4a02-b69d-40039fa219fe",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -944,
+        -736
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## On every chat message:\n\n* The workflow gets the data from the local schema file and extracts it as a JSON object. This way, we achieve two important improvements:\n  * faster processing time as we don't need to fetch the schema for each table from a slow remote database\n  * the Agent will know database structure without seeing the actual data\n* DB schema is then converted into a long string, JSON fields from the Chat Trigger are added before they are entered into the Agent node.\n",
+        "height": 489.29614613074125,
+        "width": 1062.678698911262,
+        "color": 6
+      },
+      "id": "6d24b8b9-21a9-4729-8321-ab027e97a8c4",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1664,
+        -272
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### LangChain AI Agent's system prompt is modified.\nIt uses only the database schema to generate SQL queries. The agent creates these queries but does not execute them. Instead, it passes them to subsequent nodes.\n\n**Example:**\n\"Can you show me the list of all German customers?\" \n\nQueries are generated only when necessary; for some requests, a query may not be needed. This is because certain questions can be answered directly without SQL execution.\n\n**Example:**\n\"Can you list me all tables?\"",
+        "height": 714.7896619176862,
+        "width": 445.66588600071304,
+        "color": 6
+      },
+      "id": "bdef3725-14c3-457b-bf0c-d1189794869c",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -592,
+        -496
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "42abd24e-419a-47d6-bc8b-7146dd0b8314",
+              "name": "sessionId",
+              "type": "string",
+              "value": "={{ $('Chat Trigger').first().json.sessionId }}"
+            },
+            {
+              "id": "39244192-a1a6-42fe-bc75-a6fba1f264df",
+              "name": "action",
+              "type": "string",
+              "value": "={{ $('Chat Trigger').first().json.action }}"
+            },
+            {
+              "id": "f78c57d9-df13-43c7-89a7-5387e528107e",
+              "name": "chatinput",
+              "type": "string",
+              "value": "={{ $('Chat Trigger').first().json.chatInput }}"
+            },
+            {
+              "id": "e42b39eb-dfbd-48d9-94ed-d658bdd41454",
+              "name": "schema",
+              "type": "string",
+              "value": "={{ $json.data }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "39ff458a-0cf3-4fbe-ace6-7366b5e70ddb",
+      "name": "Combine schema data and chat input",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -848,
+        -64
+      ],
+      "executeOnce": true,
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/files/file.json",
+        "options": {}
+      },
+      "id": "49fdf2a4-3a64-4e2a-a2de-8fb262926f47",
+      "name": "Load the schema from the local file",
+      "type": "n8n-nodes-base.readWriteFile",
+      "position": [
+        -1312,
+        -64
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ebbe194a-4b8b-44c9-ac19-03cf69d353bf",
+              "name": "query",
+              "type": "string",
+              "value": "={{ ($json.output.match(/SELECT[\\s\\S]*?;/i) || [])[0] || \"\" }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "37d4f00f-75ad-4dcb-9320-0c1c3b28bbf8",
+      "name": "Extract SQL query",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -96,
+        -144
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "2963d04d-9d79-49f9-b52a-dc8732aca781",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.query }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2716edd1-d8fd-4714-ba1e-48561f397cfb",
+      "name": "Check if query exists",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        80,
+        -144
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "content": "## SQL query extraction\nCheck if the agent's response contains an SQL query. If it does, we extract the query using a regular expression.",
+        "height": 278.8174358200552,
+        "width": 317.8901548206743,
+        "color": 3
+      },
+      "id": "86a14455-28c5-4758-a292-38e1f4ca254f",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        -256
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 715.7029266156915,
+        "width": 882.7611828369563,
+        "color": 6
+      },
+      "id": "d96c3b9a-4e91-4702-9ff2-b636e76ee31b",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        -496
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "The AI Agent remembers the schema, questions, and final answers, but not data values, since queries run externally. The agent can't access database content. ",
+        "height": 108.03673727584527,
+        "width": 257.46308756569573,
+        "color": 3
+      },
+      "id": "3ed82755-a77e-4833-81b3-181f37d6dc45",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -416,
+        112
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "- The SQL node accesses the database and executes the query. The results are then formatted for readability.\n- Both the chat response and the query result are displayed in the chat window.",
+        "height": 123.43139661532095,
+        "width": 308.8514666587585,
+        "color": 3
+      },
+      "id": "3e81d1ba-8fa7-4433-a99a-9f6a2ad9e605",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        -480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "When the agent responds without an SQL query, you receive an immediate answer with no additional processing.",
+        "height": 89.90186716520257,
+        "width": 250.40895053328057,
+        "color": 3
+      },
+      "id": "aa91bc14-d4af-49e6-86ae-1ee54f57b52a",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        496,
+        128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f944d21f-6aac-4842-8926-4108d6cad4bf",
+              "name": "sqloutput",
+              "type": "string",
+              "value": "={{ Object.keys($jmespath($input.all(),'[].json')[0]).join(' | ') }} \n{{ ($jmespath($input.all(),'[].json')).map(obj => Object.values(obj).join(' | ')).join('\\n') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e51614f5-5b2c-4eaa-bd6f-887c46ad2571",
+      "name": "Format query results",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        528,
+        -368
+      ],
+      "executeOnce": true,
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aa55e186-1535-4923-aee4-e088ca69575b",
+              "name": "output",
+              "type": "string",
+              "value": "={{ $json.output }}\n\nSQL result:\n```markdown\n{{ $json.sqloutput }}\n```"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "92feebc9-ece7-4776-b37c-3962b861f2f1",
+      "name": "Prepare final output",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        784,
+        -64
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "7cd7d19c-7711-4e98-8a46-1cad40599b6d",
+      "name": "Combine query result and chat answer",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        560,
+        -144
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "764176d6-3c89-404d-9c71-301e8a406a68",
+              "name": "table",
+              "type": "string",
+              "value": "={{ $('List all tables in a database').item.json.table_name ?? 'emails_metadata'}}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "9ebfcd97-62a0-41eb-a0de-3ac3fdae8536",
+      "name": "Add table name to output",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1280,
+        -544
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "id": "7427fd60-34d8-4ac4-8fb0-c4f0af19fe9d",
+      "name": "Convert data to binary",
+      "type": "n8n-nodes-base.convertToFile",
+      "position": [
+        -1088,
+        -544
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/files/{{ $binary.data.fileName }}",
+        "options": {}
+      },
+      "id": "f84dc089-1773-42c7-934b-d69bf7e25082",
+      "name": "Save file locally",
+      "type": "n8n-nodes-base.readWriteFile",
+      "position": [
+        -912,
+        -544
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "b820189c-3804-47b8-bdb6-29d71673d15d",
+      "name": "When clicking \"Test workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -1872,
+        -544
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  column_name, \n  udt_name as data_type, \n  CASE WHEN data_type = 'ARRAY' THEN TRUE ELSE FALSE END AS is_array,\n  is_nullable \nFROM INFORMATION_SCHEMA.COLUMNS where table_name = '{{ $json.table_name }}'",
+        "options": {}
+      },
+      "id": "c3d6ea29-f1bf-4354-a7a3-b7b862c48e6f",
+      "name": "List all columns in a table",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -1488,
+        -544
+      ],
+      "typeVersion": 2.6,
+      "credentials": {
+        "postgres": {
+          "id": "9dRK47dX5jATkbXi",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='public'",
+        "options": {}
+      },
+      "id": "e46fc061-4626-403e-87f5-87a0fa7e3c08",
+      "name": "List all tables in a database",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -1664,
+        -544
+      ],
+      "typeVersion": 2.6,
+      "credentials": {
+        "postgres": {
+          "id": "9dRK47dX5jATkbXi",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        16
+      ],
+      "id": "1fe67b97-6c28-4e8b-a2f7-05d4d9ccdf77",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "ojimXpsaPdYtZSYT",
+          "name": "OpenRouter account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.query }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        288,
+        -352
+      ],
+      "id": "fa8ec468-63d5-4a82-b685-147cb76b5d51",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "9dRK47dX5jATkbXi",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO n8n_chat_histories (session_id, message, \"Response\")\nVALUES (\n    'session_' || EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)::bigint,\n    '{\"content\": \"{{ $('Chat Trigger').item.json.chatInput }}\"}',\n    '{{ $json.output }}'\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1152,
+        -48
+      ],
+      "id": "9f4e5ab9-7ddb-4231-8deb-ccec8d09ce7c",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "9dRK47dX5jATkbXi",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aa55e186-1535-4923-aee4-e088ca69575b",
+              "name": "output",
+              "type": "string",
+              "value": "={{ $('Prepare final output').item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "751073d3-21b6-4654-9c14-d2f7f785d803",
+      "name": "Prepare final output1",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1360,
+        -80
+      ],
+      "typeVersion": 3.4
+    }
+  ],
+  "connections": {
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract data from file": {
+      "main": [
+        [
+          {
+            "node": "Combine schema data and chat input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Load the schema from the local file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Extract SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine schema data and chat input": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load the schema from the local file": {
+      "main": [
+        [
+          {
+            "node": "Extract data from file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract SQL query": {
+      "main": [
+        [
+          {
+            "node": "Check if query exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if query exists": {
+      "main": [
+        [
+          {
+            "node": "Combine query result and chat answer",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format query results": {
+      "main": [
+        [
+          {
+            "node": "Combine query result and chat answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare final output": {
+      "main": [
+        []
+      ]
+    },
+    "Combine query result and chat answer": {
+      "main": [
+        [
+          {
+            "node": "Prepare final output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add table name to output": {
+      "main": [
+        [
+          {
+            "node": "Convert data to binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert data to binary": {
+      "main": [
+        [
+          {
+            "node": "Save file locally",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save file locally": {
+      "main": [
+        []
+      ]
+    },
+    "When clicking \"Test workflow\"": {
+      "main": [
+        [
+          {
+            "node": "List all tables in a database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List all columns in a table": {
+      "main": [
+        [
+          {
+            "node": "Add table name to output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List all tables in a database": {
+      "main": [
+        [
+          {
+            "node": "List all columns in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Format query results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Prepare final output1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "867debc56d67b13c7535fe4d2e6c750196bc9caeca03c69163779c16943ce429"
+  }
+}
